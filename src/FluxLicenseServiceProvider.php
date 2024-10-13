@@ -1,13 +1,14 @@
 <?php
 
+namespace TeamNiftyGmbH\FluxLicense;
 
 use FluxErp\Actions\User\CreateUser;
 use FluxErp\Actions\User\UpdateUser;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\ServiceProvider;
+use TeamNiftyGmbH\FluxLicense\Console\Commands\FluxLicenseSendUpdate;
 
 class FluxLicenseServiceProvider extends ServiceProvider
 {

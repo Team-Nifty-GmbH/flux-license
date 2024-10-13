@@ -1,5 +1,7 @@
 <?php
 
+namespace TeamNiftyGmbH\FluxLicense\Console\Commands;
+
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 
