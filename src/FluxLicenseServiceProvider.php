@@ -1,0 +1,42 @@
+<?php
+
+
+use FluxErp\Actions\User\CreateUser;
+use FluxErp\Actions\User\UpdateUser;
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\ServiceProvider;
+
+class FluxLicenseServiceProvider extends ServiceProvider
+{
+    public function register(): void
+    {
+        $this->commands([
+            FluxLicenseSendUpdate::class,
+        ]);
+
+        $this->app->booted(function () {
+            $scheduler = $this->app->make(Schedule::class);
+            $scheduler->command('flux-license:send-update')->daily();
+        });
+    }
+
+    public function boot(): void
+    {
+        Event::listen(
+            'action.executed: ' . resolve_static(UpdateUser::class, 'class'),
+            function () {
+                Artisan::call('flux-license:send-update');
+            }
+        );
+
+        Event::listen(
+            'action.executed: ' . resolve_static(CreateUser::class, 'class'),
+            function () {
+                Artisan::call('flux-license:send-update');
+            }
+        );
+    }
+}
