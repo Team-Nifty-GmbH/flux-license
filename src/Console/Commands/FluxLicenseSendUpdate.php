@@ -2,6 +2,7 @@
 
 namespace TeamNiftyGmbH\FluxLicense\Console\Commands;
 
+use FluxErp\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 
@@ -23,12 +24,20 @@ class FluxLicenseSendUpdate extends Command
 
     public function handle(): void
     {
-        Http::post(
+        $response = Http::post(
             'https://flux.team-nifty.com/api/flux-licenses/' . config('flux.license_key'),
             [
-                'active_users' => \FluxErp\Models\User::query()->where('is_active', true)->count(),
-                'users' => \FluxErp\Models\User::query()->where('is_active', true)->get(['email'])->toArray(),
+                'active_users' => User::query()->where('is_active', true)->count(),
+                'users' => User::query()->where('is_active', true)->get(['email'])->toArray(),
             ]
         );
+
+        if ($response->failed()) {
+            $this->error('Failed to send update to flux.team-nifty.com: ' . $response->getStatusCode());
+
+            return;
+        }
+
+        $this->info('Successfully sent update to flux.team-nifty.com');
     }
 }
