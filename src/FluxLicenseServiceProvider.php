@@ -12,32 +12,32 @@ use TeamNiftyGmbH\FluxLicense\Console\Commands\FluxLicenseSendUpdate;
 
 class FluxLicenseServiceProvider extends ServiceProvider
 {
-    public function register(): void
-    {
-        $this->commands([
-            FluxLicenseSendUpdate::class,
-        ]);
-
-        $this->app->booted(function () {
-            $scheduler = $this->app->make(Schedule::class);
-            $scheduler->command('flux-license:send-update')->daily();
-        });
-    }
-
     public function boot(): void
     {
         Event::listen(
             'action.executed: ' . resolve_static(UpdateUser::class, 'class'),
-            function () {
+            function (): void {
                 Artisan::call('flux-license:send-update');
             }
         );
 
         Event::listen(
             'action.executed: ' . resolve_static(CreateUser::class, 'class'),
-            function () {
+            function (): void {
                 Artisan::call('flux-license:send-update');
             }
         );
+    }
+
+    public function register(): void
+    {
+        $this->commands([
+            FluxLicenseSendUpdate::class,
+        ]);
+
+        $this->app->booted(function (): void {
+            $scheduler = $this->app->make(Schedule::class);
+            $scheduler->command('flux-license:send-update')->daily();
+        });
     }
 }

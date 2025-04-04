@@ -9,18 +9,18 @@ use Illuminate\Support\Facades\Http;
 class FluxLicenseSendUpdate extends Command
 {
     /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'flux-license:send-update';
-
-    /**
      * The console command description.
      *
      * @var string
      */
     protected $description = 'Send currently active users to flux.team-nifty.com';
+
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'flux-license:send-update';
 
     public function handle(): void
     {

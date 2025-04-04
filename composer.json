@@ -1,54 +1,54 @@
 {
-    "name": "team-nifty-gmbh/flux-license",
-    "description": "License management for Flux ERP",
-    "type": "library",
-    "license": "MIT",
-    "autoload": {
-        "psr-4": {
-            "TeamNiftyGmbH\\FluxLicense\\": "src/"
-        }
-    },
-    "authors": [
-        {
-            "name": "Patrick Weh",
-            "email": "pw@team-nifty.com"
-        }
-    ],
-    "minimum-stability": "dev",
-    "require": {
-        "team-nifty-gmbh/flux-erp": "*"
-    },
-    "require-dev": {
-        "brianium/paratest": "^7.0",
-        "friendsofphp/php-cs-fixer": "^v3.6",
-        "laravel/pint": "^1.1",
-        "nunomaduro/collision": "^7.4|^8.0",
-        "orchestra/testbench": "^8.0|^9.0",
-        "phpstan/phpstan": "^1.9",
-        "phpunit/phpunit": "^10.0",
-        "squizlabs/php_codesniffer": "^3.6",
-        "vlucas/phpdotenv": "^5.5"
-    },
-    "scripts": {
-        "post-autoload-dump": "@php ./vendor/bin/testbench package:discover --ansi",
-        "analyse": "vendor/bin/phpstan analyse",
-        "test": "vendor/bin/pest",
-        "test-coverage": "vendor/bin/pest --coverage",
-        "format": "vendor/bin/pint"
-    },
-    "config": {
-        "sort-packages": true,
-        "allow-plugins": {
-            "pestphp/pest-plugin": true,
-            "phpstan/extension-installer": true,
-            "php-http/discovery": true
-        }
-    },
-    "extra": {
-        "laravel": {
-            "providers": [
-                "TeamNiftyGmbH\\FluxLicense\\FluxLicenseServiceProvider"
-            ]
-        }
+  "name": "team-nifty-gmbh/flux-license",
+  "description": "License management for Flux ERP",
+  "type": "library",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "TeamNiftyGmbH\\FluxLicense\\": "src/"
     }
+  },
+  "authors": [
+    {
+      "name": "Patrick Weh",
+      "email": "pw@team-nifty.com"
+    }
+  ],
+  "minimum-stability": "dev",
+  "require": {
+    "team-nifty-gmbh/flux-erp": "*"
+  },
+  "require-dev": {
+    "brianium/paratest": "^7.0",
+    "friendsofphp/php-cs-fixer": "^v3.6",
+    "laravel/pint": "^1.1",
+    "nunomaduro/collision": "^7.4|^8.0",
+    "orchestra/testbench": "^8.0|^9.0",
+    "phpstan/phpstan": "^1.9",
+    "phpunit/phpunit": "^10.0",
+    "squizlabs/php_codesniffer": "^3.6",
+    "vlucas/phpdotenv": "^5.5"
+  },
+  "scripts": {
+    "post-autoload-dump": "@php ./vendor/bin/testbench package:discover --ansi",
+    "analyse": "vendor/bin/phpstan analyse",
+    "test": "vendor/bin/pest",
+    "test-coverage": "vendor/bin/pest --coverage",
+    "format": "vendor/bin/pint"
+  },
+  "config": {
+    "sort-packages": true,
+    "allow-plugins": {
+      "pestphp/pest-plugin": true,
+      "phpstan/extension-installer": true,
+      "php-http/discovery": true
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "TeamNiftyGmbH\\FluxLicense\\FluxLicenseServiceProvider"
+      ]
+    }
+  }
 }
