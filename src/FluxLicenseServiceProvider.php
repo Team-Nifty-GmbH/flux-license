@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use TeamNiftyGmbH\FluxLicense\Console\Commands\FluxLicenseSendUpdate;
+use TeamNiftyGmbH\FluxLicense\Console\Commands\Install;
 
 class FluxLicenseServiceProvider extends ServiceProvider
 {
@@ -33,6 +34,7 @@ class FluxLicenseServiceProvider extends ServiceProvider
     {
         $this->commands([
             FluxLicenseSendUpdate::class,
+            Install::class,
         ]);
 
         $this->app->booted(function (): void {
