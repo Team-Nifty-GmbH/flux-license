@@ -8,6 +8,11 @@
       "TeamNiftyGmbH\\FluxLicense\\": "src/"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "TeamNiftyGmbH\\FluxLicense\\Tests\\": "tests/"
+    }
+  },
   "authors": [
     {
       "name": "Patrick Weh",
@@ -15,25 +20,31 @@
     }
   ],
   "minimum-stability": "dev",
+  "prefer-stable": true,
   "require": {
     "team-nifty-gmbh/flux-erp": "*"
   },
   "require-dev": {
     "brianium/paratest": "^7.0",
-    "friendsofphp/php-cs-fixer": "^v3.6",
-    "laravel/pint": "^1.1",
-    "nunomaduro/collision": "^7.4|^8.0",
-    "orchestra/testbench": "^8.0|^9.0",
-    "phpstan/phpstan": "^1.9",
-    "phpunit/phpunit": "^10.0",
-    "squizlabs/php_codesniffer": "^3.6",
-    "vlucas/phpdotenv": "^5.5"
+    "laravel/pint": "^1.25",
+    "orchestra/testbench": "^10.0",
+    "pestphp/pest": "^4.0",
+    "pestphp/pest-plugin-livewire": "^4.0"
   },
   "scripts": {
     "post-autoload-dump": "@php ./vendor/bin/testbench package:discover --ansi",
     "analyse": "vendor/bin/phpstan analyse",
-    "test": "vendor/bin/pest",
+    "testbench": "./vendor/bin/testbench package:test",
+    "test": [
+      "@test-feature",
+      "@test-livewire",
+      "@test-unit"
+    ],
+    "test-feature": "@testbench --testsuite Feature",
+    "test-livewire": "@testbench --testsuite Livewire",
+    "test-unit": "@testbench --testsuite Unit",
     "test-coverage": "vendor/bin/pest --coverage",
+    "lint": "./vendor/bin/pint --test",
     "format": "vendor/bin/pint"
   },
   "config": {
