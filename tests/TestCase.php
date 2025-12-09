@@ -4,7 +4,7 @@ namespace TeamNiftyGmbH\FluxLicense\Tests;
 
 use Barryvdh\DomPDF\ServiceProvider;
 use FluxErp\FluxServiceProvider;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Laravel\Scout\ScoutServiceProvider;
 use Livewire\LivewireServiceProvider;
@@ -27,7 +27,7 @@ use TeamNiftyGmbH\FluxLicense\FluxLicenseServiceProvider;
 abstract class TestCase extends BaseTestCase
 {
     use CreatesApplication;
-    use RefreshDatabase;
+    use LazilyRefreshDatabase;
 
     protected $loadEnvironmentVariables = true;
 

@@ -71,7 +71,9 @@ class Install extends Command
                             {--admin-firstname= : Admin first name}
                             {--admin-lastname= : Admin last name}
                             {--admin-email= : Admin email}
-                            {--admin-password= : Admin password}';
+                            {--admin-password= : Admin password}
+                            {--skip-migrations : Skip running migrations (useful for testing when RefreshDatabase is used)}
+                            {--skip-init-commands : Skip running initial setup commands (useful for testing)}';
 
     protected array $userData = [];
 
@@ -101,7 +103,9 @@ class Install extends Command
             $this->setupUser();
         }
 
-        $this->runInitialCommands();
+        if (! $this->option('skip-init-commands')) {
+            $this->runInitialCommands();
+        }
 
         DB::beginTransaction();
         try {
@@ -456,6 +460,12 @@ class Install extends Command
 
     protected function setupDatabase(): void
     {
+        if ($this->option('skip-migrations')) {
+            $this->info(__('Skipping database migrations (--skip-migrations flag provided)...'));
+
+            return;
+        }
+
         $this->info(__('Running database migrations...'));
 
         try {

@@ -26,6 +26,8 @@ test('command fails when installation already completed', function (): void {
 test('command runs migrations during setup', function (): void {
     $this->artisan('flux:install', [
         '--no-interaction' => true,
+        '--skip-migrations' => true,
+        '--skip-init-commands' => true,
         '--company-name' => 'Test Company',
         '--company-email' => 'test@example.com',
         '--admin-firstname' => 'John',
@@ -42,6 +44,8 @@ test('command creates default language', function (): void {
 
     $this->artisan('flux:install', [
         '--no-interaction' => true,
+        '--skip-migrations' => true,
+        '--skip-init-commands' => true,
         '--language-code' => 'de',
         '--language-name' => 'Deutsch',
         '--company-name' => 'Test Company',
@@ -61,6 +65,8 @@ test('command creates currency with correct data', function (): void {
 
     $this->artisan('flux:install', [
         '--no-interaction' => true,
+        '--skip-migrations' => true,
+        '--skip-init-commands' => true,
         '--currency-name' => 'US Dollar',
         '--currency-iso' => 'USD',
         '--currency-symbol' => '$',
@@ -84,6 +90,8 @@ test('command creates tenant with company data', function (): void {
 
     $this->artisan('flux:install', [
         '--no-interaction' => true,
+        '--skip-migrations' => true,
+        '--skip-init-commands' => true,
         '--company-name' => 'My Test Company',
         '--company-code' => 'MTC',
         '--company-email' => 'company@example.com',
@@ -113,6 +121,8 @@ test('command creates vat rates from option', function (): void {
 
     $this->artisan('flux:install', [
         '--no-interaction' => true,
+        '--skip-migrations' => true,
+        '--skip-init-commands' => true,
         '--vat-rates' => 'Standard:19,Reduced:7,Zero:0',
         '--company-name' => 'Test Company',
         '--company-email' => 'test@example.com',
@@ -135,6 +145,8 @@ test('command creates default vat rate when not provided', function (): void {
 
     $this->artisan('flux:install', [
         '--no-interaction' => true,
+        '--skip-migrations' => true,
+        '--skip-init-commands' => true,
         '--company-name' => 'Test Company',
         '--company-email' => 'test@example.com',
         '--admin-firstname' => 'John',
@@ -153,6 +165,8 @@ test('command creates payment types from option', function (): void {
 
     $this->artisan('flux:install', [
         '--no-interaction' => true,
+        '--skip-migrations' => true,
+        '--skip-init-commands' => true,
         '--payment-types' => 'Cash:Cash payment,Credit Card:Pay by card',
         '--company-name' => 'Test Company',
         '--company-email' => 'test@example.com',
@@ -174,6 +188,8 @@ test('command creates default payment type when not provided', function (): void
 
     $this->artisan('flux:install', [
         '--no-interaction' => true,
+        '--skip-migrations' => true,
+        '--skip-init-commands' => true,
         '--payment-type-name' => 'Bank Transfer',
         '--payment-type-description' => 'Payment by bank transfer',
         '--company-name' => 'Test Company',
@@ -196,6 +212,8 @@ test('command creates admin user with correct data', function (): void {
 
     $this->artisan('flux:install', [
         '--no-interaction' => true,
+        '--skip-migrations' => true,
+        '--skip-init-commands' => true,
         '--company-name' => 'Test Company',
         '--company-email' => 'test@example.com',
         '--admin-firstname' => 'Jane',
@@ -219,6 +237,8 @@ test('command creates default price list', function (): void {
 
     $this->artisan('flux:install', [
         '--no-interaction' => true,
+        '--skip-migrations' => true,
+        '--skip-init-commands' => true,
         '--company-name' => 'Test Company',
         '--company-email' => 'test@example.com',
         '--admin-firstname' => 'John',
@@ -238,6 +258,8 @@ test('command creates default warehouse', function (): void {
 
     $this->artisan('flux:install', [
         '--no-interaction' => true,
+        '--skip-migrations' => true,
+        '--skip-init-commands' => true,
         '--company-name' => 'Test Company',
         '--company-email' => 'test@example.com',
         '--admin-firstname' => 'John',
@@ -255,6 +277,8 @@ test('command creates specified order types', function (): void {
 
     $this->artisan('flux:install', [
         '--no-interaction' => true,
+        '--skip-migrations' => true,
+        '--skip-init-commands' => true,
         '--order-types' => ['order', 'invoice'],
         '--company-name' => 'Test Company',
         '--company-email' => 'test@example.com',
@@ -273,6 +297,8 @@ test('command generates tenant code from company name if not provided', function
 
     $this->artisan('flux:install', [
         '--no-interaction' => true,
+        '--skip-migrations' => true,
+        '--skip-init-commands' => true,
         '--company-name' => 'Amazing Test Company',
         '--company-email' => 'test@example.com',
         '--admin-firstname' => 'John',
@@ -288,6 +314,8 @@ test('command generates tenant code from company name if not provided', function
 test('command requires necessary fields in non-interactive mode', function (): void {
     $this->artisan('flux:install', [
         '--no-interaction' => true,
+        '--skip-migrations' => true,
+        '--skip-init-commands' => true,
     ])->assertFailed();
 });
 
@@ -296,6 +324,8 @@ test('command displays success message on completion', function (): void {
 
     $this->artisan('flux:install', [
         '--no-interaction' => true,
+        '--skip-migrations' => true,
+        '--skip-init-commands' => true,
         '--company-name' => 'Test Company',
         '--company-email' => 'test@example.com',
         '--admin-firstname' => 'John',
