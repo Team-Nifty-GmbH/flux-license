@@ -30,7 +30,7 @@ test('service provider listens to user create action', function (): void {
         'flux.team-nifty.com/*' => Http::response(['success' => true], 200),
     ]);
 
-    Event::fake();
+    Event::fake(['action.executed: *']);
 
     $user = CreateUser::make([
         'firstname' => 'Test',
@@ -52,9 +52,9 @@ test('service provider listens to user update action', function (): void {
         'flux.team-nifty.com/*' => Http::response(['success' => true], 200),
     ]);
 
-    Event::fake();
-
     $user = User::factory()->create(['language_id' => $this->defaultLanguage->getKey()]);
+
+    Event::fake(['action.executed: *']);
 
     UpdateUser::make([
         'id' => $user->getKey(),
