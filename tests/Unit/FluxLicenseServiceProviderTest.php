@@ -30,7 +30,8 @@ test('service provider listens to user create action', function (): void {
         'flux.team-nifty.com/*' => Http::response(['success' => true], 200),
     ]);
 
-    Event::fake(['action.executed: *']);
+    $eventName = 'action.executed: ' . resolve_static(CreateUser::class, 'class');
+    Event::fake([$eventName]);
 
     $user = CreateUser::make([
         'firstname' => 'Test',
@@ -44,7 +45,7 @@ test('service provider listens to user create action', function (): void {
 
     expect($user)->toBeInstanceOf(User::class);
 
-    Event::assertDispatched('action.executed: ' . resolve_static(CreateUser::class, 'class'));
+    Event::assertDispatched($eventName);
 });
 
 test('service provider listens to user update action', function (): void {
@@ -54,14 +55,15 @@ test('service provider listens to user update action', function (): void {
 
     $user = User::factory()->create(['language_id' => $this->defaultLanguage->getKey()]);
 
-    Event::fake(['action.executed: *']);
+    $eventName = 'action.executed: ' . resolve_static(UpdateUser::class, 'class');
+    Event::fake([$eventName]);
 
     UpdateUser::make([
         'id' => $user->getKey(),
         'firstname' => 'Updated',
     ])->validate()->execute();
 
-    Event::assertDispatched('action.executed: ' . resolve_static(UpdateUser::class, 'class'));
+    Event::assertDispatched($eventName);
 });
 
 test('service provider triggers license update on user creation', function (): void {
