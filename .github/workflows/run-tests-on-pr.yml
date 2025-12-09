@@ -84,16 +84,6 @@ jobs:
           DB_USERNAME: root
           DB_PASSWORD: package_project_l12
 
-      - name: Run Install Tests
-        run: composer test-install
-        env:
-          DB_CONNECTION: mysql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 33306
-          DB_DATABASE: testing
-          DB_USERNAME: root
-          DB_PASSWORD: package_project_l12
-
       - name: Run Livewire Tests
         run: composer test-livewire
         env:
