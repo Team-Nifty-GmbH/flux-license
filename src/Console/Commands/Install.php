@@ -3,23 +3,23 @@
 namespace TeamNiftyGmbH\FluxLicense\Console\Commands;
 
 use Exception;
-use FluxErp\Actions\Client\CreateClient;
 use FluxErp\Actions\Currency\CreateCurrency;
 use FluxErp\Actions\Language\CreateLanguage;
 use FluxErp\Actions\OrderType\CreateOrderType;
 use FluxErp\Actions\PaymentType\CreatePaymentType;
 use FluxErp\Actions\PriceList\CreatePriceList;
+use FluxErp\Actions\Tenant\CreateTenant;
 use FluxErp\Actions\User\CreateUser;
 use FluxErp\Actions\VatRate\CreateVatRate;
 use FluxErp\Actions\Warehouse\CreateWarehouse;
 use FluxErp\Enums\OrderTypeEnum;
-use FluxErp\Models\Client;
 use FluxErp\Models\Currency;
 use FluxErp\Models\Language;
 use FluxErp\Models\OrderType;
 use FluxErp\Models\PaymentType;
 use FluxErp\Models\PriceList;
 use FluxErp\Models\Role;
+use FluxErp\Models\Tenant;
 use FluxErp\Models\User;
 use FluxErp\Models\VatRate;
 use FluxErp\Models\Warehouse;
@@ -38,7 +38,7 @@ use function Laravel\Prompts\text;
 
 class Install extends Command
 {
-    protected array $clientData = [];
+    protected array $tenantData = [];
 
     protected array $currencyData = [];
 
@@ -71,7 +71,9 @@ class Install extends Command
                             {--admin-firstname= : Admin first name}
                             {--admin-lastname= : Admin last name}
                             {--admin-email= : Admin email}
-                            {--admin-password= : Admin password}';
+                            {--admin-password= : Admin password}
+                            {--skip-migrations : Skip running migrations (useful for testing when RefreshDatabase is used)}
+                            {--skip-init-commands : Skip running initial setup commands (useful for testing)}';
 
     protected array $userData = [];
 
@@ -94,14 +96,16 @@ class Install extends Command
         } else {
             $this->setupLanguage();
             $this->setupCurrency();
-            $this->setupClient();
+            $this->setupTenant();
             $this->setupVatRates();
             $this->setupPaymentType();
             $this->setupOrderTypes();
             $this->setupUser();
         }
 
-        $this->runInitialCommands();
+        if (! $this->option('skip-init-commands')) {
+            $this->runInitialCommands();
+        }
 
         DB::beginTransaction();
         try {
@@ -189,13 +193,13 @@ class Install extends Command
                 ->execute();
         }
 
-        if (! isset($this->clientData['id'])) {
-            $client = CreateClient::make($this->clientData)
+        if (! isset($this->tenantData['id'])) {
+            $tenant = CreateTenant::make($this->tenantData)
                 ->validate()
                 ->execute();
         } else {
-            $client = resolve_static(Client::class, 'query')
-                ->whereKey($this->clientData['id'])
+            $tenant = resolve_static(Tenant::class, 'query')
+                ->whereKey($this->tenantData['id'])
                 ->first();
         }
 
@@ -238,7 +242,7 @@ class Install extends Command
 
         foreach ($this->paymentTypes as $paymentType) {
             if (! isset($paymentType['id'])) {
-                $paymentType['clients'] = [$client->id];
+                $paymentType['tenants'] = [$tenant->id];
                 CreatePaymentType::make($paymentType)
                     ->validate()
                     ->execute();
@@ -254,7 +258,7 @@ class Install extends Command
                     ->doesntExist()
             ) {
                 CreateOrderType::make([
-                    'client_id' => $client->id,
+                    'tenant_id' => $tenant->id,
                     'name' => __($orderType->name),
                     'order_type_enum' => $orderType,
                 ])
@@ -291,7 +295,7 @@ class Install extends Command
         $this->call('flux:init-env', [
             'keyValues' => implode(',', [
                 'app_locale:' . $this->languageData['language_code'],
-                'app_name:' . $this->clientData['name'],
+                'app_name:' . $this->tenantData['name'],
                 'flux_install_done:true',
             ]),
         ]);
@@ -316,38 +320,38 @@ class Install extends Command
         }
     }
 
-    protected function setupClient(): void
+    protected function setupTenant(): void
     {
         note(__('Company Information'));
 
-        $existingClients = resolve_static(Client::class, 'query')
+        $existingTenants = resolve_static(Tenant::class, 'query')
             ->get([
                 'id',
                 'name',
-                'client_code',
+                'tenant_code',
                 'email',
             ]);
 
-        if ($existingClients->isNotEmpty()) {
+        if ($existingTenants->isNotEmpty()) {
             table(
                 headers: [__('ID'), __('Name'), __('Code'), __('Email')],
-                rows: $existingClients->map(fn (Client $client) => [
-                    $client->id,
-                    $client->name,
-                    $client->client_code,
-                    $client->email,
+                rows: $existingTenants->map(fn (Tenant $tenant) => [
+                    $tenant->id,
+                    $tenant->name,
+                    $tenant->tenant_code,
+                    $tenant->email,
                 ])
                     ->toArray()
             );
 
-            if (! confirm(__('Client already exists. Would you like to add another?'), false)) {
-                $firstClient = $existingClients->first();
-                $this->clientData = [
-                    'id' => $firstClient->id,
-                    'name' => $firstClient->name,
-                    'client_code' => $firstClient->client_code,
-                    'email' => $firstClient->email,
-                    'is_default' => $firstClient->is_default,
+            if (! confirm(__('Tenant already exists. Would you like to add another?'), false)) {
+                $firstTenant = $existingTenants->first();
+                $this->tenantData = [
+                    'id' => $firstTenant->id,
+                    'name' => $firstTenant->name,
+                    'tenant_code' => $firstTenant->tenant_code,
+                    'email' => $firstTenant->email,
+                    'is_default' => $firstTenant->is_default,
                 ];
 
                 return;
@@ -356,16 +360,16 @@ class Install extends Command
 
         while (true) {
             $name = text(__('Company Name'), required: true);
-            $clientCode = text(__('Client Code'), required: true);
+            $tenantCode = text(__('Tenant Code'), required: true);
             $email = text(__('Company Email'), required: true);
             $phone = text(__('Company Phone'));
             $street = text(__('Street'));
             $postcode = text(__('Postcode'));
             $city = text(__('City'));
 
-            $this->clientData = [
+            $this->tenantData = [
                 'name' => $name,
-                'client_code' => $clientCode,
+                'tenant_code' => $tenantCode,
                 'email' => $email,
                 'phone' => $phone ?: null,
                 'street' => $street ?: null,
@@ -375,7 +379,7 @@ class Install extends Command
             ];
 
             try {
-                CreateClient::make($this->clientData)->validate();
+                CreateTenant::make($this->tenantData)->validate();
 
                 break;
             } catch (ValidationException $e) {
@@ -456,6 +460,12 @@ class Install extends Command
 
     protected function setupDatabase(): void
     {
+        if ($this->option('skip-migrations')) {
+            $this->info(__('Skipping database migrations (--skip-migrations flag provided)...'));
+
+            return;
+        }
+
         $this->info(__('Running database migrations...'));
 
         try {
@@ -501,9 +511,9 @@ class Install extends Command
             'is_default' => true,
         ];
 
-        $this->clientData = [
+        $this->tenantData = [
             'name' => $this->option('company-name'),
-            'client_code' => $this->option('company-code')
+            'tenant_code' => $this->option('company-code')
                 ?: strtoupper(substr($this->option('company-name'), 0, 3)),
             'email' => $this->option('company-email'),
             'phone' => $this->option('company-phone') ?: null,
