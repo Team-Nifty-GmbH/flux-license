@@ -38,11 +38,13 @@
     "test": [
       "@test-feature",
       "@test-livewire",
-      "@test-unit"
+      "@test-unit",
+      "@test-install"
     ],
     "test-feature": "@testbench --testsuite Feature",
     "test-livewire": "@testbench --testsuite Livewire",
     "test-unit": "@testbench --testsuite Unit",
+    "test-install": "@testbench --testsuite Install",
     "test-coverage": "vendor/bin/pest --coverage",
     "lint": "./vendor/bin/pint --test",
     "format": "vendor/bin/pint"

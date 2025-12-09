@@ -43,3 +43,15 @@ pest()
         $this->withoutVite();
     })
     ->in('Feature', 'Unit');
+
+// Install tests don't need the database setup from the global beforeEach
+// because they test the installation wizard which creates its own data
+pest()
+    ->extend(TestCase::class)
+    ->beforeEach(function (): void {
+        config(['app.debug' => true]);
+        config(['flux.install_done' => false]);
+
+        $this->withoutVite();
+    })
+    ->in('Install');

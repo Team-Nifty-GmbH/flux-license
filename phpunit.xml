@@ -13,6 +13,9 @@
         <testsuite name="Unit">
             <directory suffix="Test.php">./tests/Unit</directory>
         </testsuite>
+        <testsuite name="Install">
+            <directory suffix="Test.php">./tests/Install</directory>
+        </testsuite>
     </testsuites>
     <php>
         <ini name="memory_limit" value="2G"/>
