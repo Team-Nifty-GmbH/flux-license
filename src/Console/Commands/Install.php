@@ -291,14 +291,6 @@ class Install extends Command
                 ->validate()
                 ->execute();
         }
-
-        $this->call('flux:init-env', [
-            'keyValues' => implode(',', [
-                'app_locale:' . $this->languageData['language_code'],
-                'app_name:' . $this->tenantData['name'],
-                'flux_install_done:true',
-            ]),
-        ]);
     }
 
     protected function runInitialCommands(): void
