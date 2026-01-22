@@ -58,7 +58,12 @@ abstract class TestCase extends BaseTestCase
             mkdir(database_path('settings'));
         }
 
-        $app['config']->set('database.default', 'mysql');
+        $app['config']->set('database.default', env('DB_CONNECTION', 'sqlite'));
+        $app['config']->set('database.connections.sqlite', [
+            'driver' => 'sqlite',
+            'database' => ':memory:',
+            'prefix' => '',
+        ]);
         $app['config']->set('flux.install_done', true);
         $app['config']->set('auth.defaults.guard', 'sanctum');
         $app['config']->set('cache.default', 'array');
