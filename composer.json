@@ -1,67 +1,67 @@
 {
-  "name": "team-nifty-gmbh/flux-license",
-  "description": "License management for Flux ERP",
-  "type": "library",
-  "license": "MIT",
-  "autoload": {
-    "psr-4": {
-      "TeamNiftyGmbH\\FluxLicense\\": "src/"
-    }
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "TeamNiftyGmbH\\FluxLicense\\Tests\\": "tests/"
-    }
-  },
-  "authors": [
-    {
-      "name": "Patrick Weh",
-      "email": "pw@team-nifty.com"
-    }
-  ],
-  "minimum-stability": "dev",
-  "prefer-stable": true,
-  "require": {
-    "team-nifty-gmbh/flux-erp": "*"
-  },
-  "require-dev": {
-    "brianium/paratest": "^7.0",
-    "laravel/pint": "^1.25",
-    "orchestra/testbench": "^10.0",
-    "pestphp/pest": "^4.0",
-    "pestphp/pest-plugin-livewire": "^4.0"
-  },
-  "scripts": {
-    "post-autoload-dump": "@php ./vendor/bin/testbench package:discover --ansi",
-    "analyse": "vendor/bin/phpstan analyse",
-    "testbench": "./vendor/bin/testbench package:test",
-    "test": [
-      "@test-feature",
-      "@test-livewire",
-      "@test-unit",
-      "@test-install"
+    "name": "team-nifty-gmbh/flux-license",
+    "description": "License management for Flux ERP",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "TeamNiftyGmbH\\FluxLicense\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "TeamNiftyGmbH\\FluxLicense\\Tests\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Patrick Weh",
+            "email": "pw@team-nifty.com"
+        }
     ],
-    "test-feature": "@testbench --testsuite Feature",
-    "test-livewire": "@testbench --testsuite Livewire",
-    "test-unit": "@testbench --testsuite Unit",
-    "test-install": "@testbench --testsuite Install",
-    "test-coverage": "vendor/bin/pest --coverage",
-    "lint": "./vendor/bin/pint --test",
-    "format": "vendor/bin/pint"
-  },
-  "config": {
-    "sort-packages": true,
-    "allow-plugins": {
-      "pestphp/pest-plugin": true,
-      "phpstan/extension-installer": true,
-      "php-http/discovery": true
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "team-nifty-gmbh/flux-erp": "^1.0"
+    },
+    "require-dev": {
+        "brianium/paratest": "^7.0",
+        "laravel/pint": "^1.25",
+        "orchestra/testbench": "^11.0",
+        "pestphp/pest": "^4.0",
+        "pestphp/pest-plugin-livewire": "^4.0"
+    },
+    "scripts": {
+        "post-autoload-dump": "@php ./vendor/bin/testbench package:discover --ansi",
+        "analyse": "vendor/bin/phpstan analyse",
+        "testbench": "./vendor/bin/testbench package:test",
+        "test": [
+            "@test-feature",
+            "@test-livewire",
+            "@test-unit",
+            "@test-install"
+        ],
+        "test-feature": "@testbench --testsuite Feature",
+        "test-livewire": "@testbench --testsuite Livewire",
+        "test-unit": "@testbench --testsuite Unit",
+        "test-install": "@testbench --testsuite Install",
+        "test-coverage": "vendor/bin/pest --coverage",
+        "lint": "./vendor/bin/pint --test",
+        "format": "vendor/bin/pint"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "phpstan/extension-installer": true,
+            "php-http/discovery": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "TeamNiftyGmbH\\FluxLicense\\FluxLicenseServiceProvider"
+            ]
+        }
     }
-  },
-  "extra": {
-    "laravel": {
-      "providers": [
-        "TeamNiftyGmbH\\FluxLicense\\FluxLicenseServiceProvider"
-      ]
-    }
-  }
 }
