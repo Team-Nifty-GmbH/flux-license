@@ -1,0 +1,90 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: [self-hosted, Linux]
+    container:
+      image: ghcr.io/team-nifty-gmbh/flux-ci:php8.5
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Fix git ownership
+        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+
+      - name: Configure Composer GitHub auth
+        run: composer config --global github-oauth.github.com ${{ github.token }}
+
+      - name: Install Composer dependencies
+        run: composer install --no-progress --prefer-dist --optimize-autoloader
+
+      - name: Pint
+        run: ./vendor/bin/pint --test
+
+  tests:
+    name: Tests
+    needs: lint
+    runs-on: [self-hosted, Linux]
+    container:
+      image: ghcr.io/team-nifty-gmbh/flux-ci:php8.5
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: false
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: testing
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Fix git ownership
+        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+
+      - name: Configure Composer GitHub auth
+        run: composer config --global github-oauth.github.com ${{ github.token }}
+
+      - name: Install Composer dependencies
+        run: composer install --no-progress --prefer-dist --optimize-autoloader
+
+      - name: Create schema
+        run: |
+          ./vendor/bin/testbench migrate --force
+          ./vendor/bin/testbench schema:dump
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: mysql
+          DB_PORT: 3306
+          DB_DATABASE: testing
+          DB_USERNAME: root
+          DB_PASSWORD: password
+
+      - name: Run Tests
+        run: ./vendor/bin/testbench package:test --parallel
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: mysql
+          DB_PORT: 3306
+          DB_DATABASE: testing
+          DB_USERNAME: root
+          DB_PASSWORD: password
