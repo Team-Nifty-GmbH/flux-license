@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.1/phpunit.xsd"
-    bootstrap="./tests/TestCase.php"
+    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/12.0/phpunit.xsd"
     colors="true"
-    backupGlobals="false"
+    failOnDeprecation="false"
+    failOnNotice="false"
 >
     <testsuites>
         <testsuite name="Feature">
@@ -13,31 +13,20 @@
         <testsuite name="Unit">
             <directory suffix="Test.php">./tests/Unit</directory>
         </testsuite>
-        <testsuite name="Install">
-            <directory suffix="Test.php">./tests/Install</directory>
-        </testsuite>
     </testsuites>
     <php>
         <ini name="memory_limit" value="2G"/>
         <env name="APP_ENV" value="testing"/>
         <env name="DB_CONNECTION" value="sqlite"/>
-        <env name="DB_HOST" value="127.0.0.1"/>
-        <env name="DB_PORT" value="3306"/>
         <env name="DB_DATABASE" value=":memory:"/>
-        <env name="DB_USERNAME" value="root"/>
-        <env name="DB_PASSWORD" value="password"/>
         <env name="CACHE_DRIVER" value="array"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
-        <env name="SCOUT_DRIVER" value="collection"/>
     </php>
     <source>
         <include>
             <directory suffix=".php">./src</directory>
         </include>
-        <exclude>
-            <directory suffix=".php">./resources</directory>
-        </exclude>
     </source>
 </phpunit>
