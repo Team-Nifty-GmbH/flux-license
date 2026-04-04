@@ -18,6 +18,7 @@ jobs:
   lint:
     name: Lint
     runs-on: [self-hosted, Linux]
+    timeout-minutes: 10
     container:
       image: ghcr.io/team-nifty-gmbh/flux-ci:php8.5
       credentials:
@@ -42,6 +43,7 @@ jobs:
     name: Tests
     needs: lint
     runs-on: [self-hosted, Linux]
+    timeout-minutes: 10
     container:
       image: ghcr.io/team-nifty-gmbh/flux-ci:php8.5
       credentials:
