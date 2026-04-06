@@ -163,6 +163,42 @@ describe('System Status Endpoint', function (): void {
             ]);
     });
 
+    it('returns installed packages', function (): void {
+        $response = $this->getJson('/api/flux-license/system-status', [
+            'Authorization' => 'Bearer test-license-key-12345',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonStructure(['packages']);
+
+        expect($response->json('packages'))->toBeArray();
+    });
+
+    it('parses composer.lock when available', function (): void {
+        $fakeLock = [
+            'packages' => [
+                ['name' => 'team-nifty-gmbh/flux-erp', 'version' => 'v1.0.2'],
+                ['name' => 'laravel/framework', 'version' => 'v13.3.0'],
+                ['name' => 'some/other-package', 'version' => '1.0.0'],
+            ],
+        ];
+
+        $lockPath = base_path('composer.lock');
+        file_put_contents($lockPath, json_encode($fakeLock));
+
+        $response = $this->getJson('/api/flux-license/system-status', [
+            'Authorization' => 'Bearer test-license-key-12345',
+        ]);
+
+        $packages = $response->json('packages');
+        expect($packages)->toHaveKey('team-nifty-gmbh/flux-erp')
+            ->and($packages['team-nifty-gmbh/flux-erp']['version'])->toBe('v1.0.2')
+            ->and($packages)->toHaveKey('laravel/framework')
+            ->and($packages)->not->toHaveKey('some/other-package');
+
+        @unlink($lockPath);
+    });
+
     it('returns active users count', function (): void {
         $response = $this->getJson('/api/flux-license/system-status', [
             'Authorization' => 'Bearer test-license-key-12345',
