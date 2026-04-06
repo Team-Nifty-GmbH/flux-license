@@ -2,25 +2,39 @@
 
 describe('System Status Endpoint', function (): void {
     it('returns 401 without authorization', function (): void {
-        $response = $this->getJson('/api/flux-license/system-status');
-
-        $response->assertUnauthorized();
+        $this->getJson('/api/flux-license/system-status')
+            ->assertUnauthorized();
     });
 
     it('returns 401 with invalid license key', function (): void {
-        $response = $this->getJson('/api/flux-license/system-status', [
+        $this->getJson('/api/flux-license/system-status', [
             'Authorization' => 'Bearer invalid-key',
-        ]);
-
-        $response->assertUnauthorized();
+        ])->assertUnauthorized();
     });
 
     it('returns 200 with valid license key', function (): void {
+        $this->getJson('/api/flux-license/system-status', [
+            'Authorization' => 'Bearer test-license-key-12345',
+        ])->assertOk();
+    });
+
+    it('returns laravel information', function (): void {
         $response = $this->getJson('/api/flux-license/system-status', [
             'Authorization' => 'Bearer test-license-key-12345',
         ]);
 
-        $response->assertOk();
+        $response->assertOk()
+            ->assertJsonStructure([
+                'laravel' => [
+                    'version',
+                    'environment',
+                    'debug_mode',
+                    'timezone',
+                    'locale',
+                ],
+            ]);
+
+        expect($response->json('laravel.version'))->toBe(app()->version());
     });
 
     it('returns php information', function (): void {
@@ -36,10 +50,12 @@ describe('System Status Endpoint', function (): void {
                     'max_execution_time',
                     'upload_max_filesize',
                     'post_max_size',
+                    'extensions',
                 ],
             ]);
 
-        expect($response->json('php.version'))->toBe(phpversion());
+        expect($response->json('php.version'))->toBe(phpversion())
+            ->and($response->json('php.extensions'))->toBeArray()->not->toBeEmpty();
     });
 
     it('returns server information', function (): void {
@@ -51,9 +67,17 @@ describe('System Status Endpoint', function (): void {
             ->assertJsonStructure([
                 'server' => [
                     'os',
+                    'software',
                     'document_root',
+                    'server_name',
+                    'runtime',
+                    'octane',
+                    'octane_server',
                 ],
             ]);
+
+        expect($response->json('server.runtime'))->toBeString()
+            ->and($response->json('server.octane'))->toBeBool();
     });
 
     it('returns database information', function (): void {
@@ -66,65 +90,76 @@ describe('System Status Endpoint', function (): void {
                 'database' => [
                     'connection',
                     'driver',
+                    'host',
+                    'port',
                 ],
             ]);
     });
 
     it('returns cache information', function (): void {
-        $response = $this->getJson('/api/flux-license/system-status', [
+        $this->getJson('/api/flux-license/system-status', [
             'Authorization' => 'Bearer test-license-key-12345',
-        ]);
-
-        $response->assertOk()
+        ])->assertOk()
             ->assertJsonStructure([
-                'cache' => [
-                    'driver',
-                    'prefix',
-                ],
+                'cache' => ['driver', 'prefix'],
             ]);
     });
 
     it('returns queue information', function (): void {
-        $response = $this->getJson('/api/flux-license/system-status', [
+        $this->getJson('/api/flux-license/system-status', [
             'Authorization' => 'Bearer test-license-key-12345',
-        ]);
-
-        $response->assertOk()
+        ])->assertOk()
             ->assertJsonStructure([
-                'queue' => [
-                    'connection',
-                    'driver',
-                    'queue',
-                    'size',
-                ],
+                'queue' => ['connection', 'driver', 'queue', 'size'],
             ]);
     });
 
     it('returns storage information', function (): void {
-        $response = $this->getJson('/api/flux-license/system-status', [
+        $this->getJson('/api/flux-license/system-status', [
             'Authorization' => 'Bearer test-license-key-12345',
-        ]);
-
-        $response->assertOk()
+        ])->assertOk()
             ->assertJsonStructure([
-                'storage' => [
-                    'disk_free_space',
-                    'disk_total_space',
-                ],
+                'storage' => ['disk_free_space', 'disk_total_space', 'view_cache_space'],
             ]);
     });
 
     it('returns session information', function (): void {
+        $this->getJson('/api/flux-license/system-status', [
+            'Authorization' => 'Bearer test-license-key-12345',
+        ])->assertOk()
+            ->assertJsonStructure([
+                'session' => ['driver', 'lifetime', 'secure', 'same_site'],
+            ]);
+    });
+
+    it('returns broadcasting information', function (): void {
         $response = $this->getJson('/api/flux-license/system-status', [
             'Authorization' => 'Bearer test-license-key-12345',
         ]);
 
         $response->assertOk()
             ->assertJsonStructure([
-                'session' => [
+                'broadcasting' => [
                     'driver',
-                    'lifetime',
+                    'reverb' => [
+                        'server' => ['host', 'port', 'scheme', 'app_key'],
+                        'frontend' => ['host', 'port', 'scheme', 'app_key'],
+                        'config_match',
+                        'issues',
+                    ],
                 ],
+            ]);
+
+        expect($response->json('broadcasting.reverb.config_match'))->toBeBool()
+            ->and($response->json('broadcasting.reverb.issues'))->toBeArray();
+    });
+
+    it('returns scout information', function (): void {
+        $this->getJson('/api/flux-license/system-status', [
+            'Authorization' => 'Bearer test-license-key-12345',
+        ])->assertOk()
+            ->assertJsonStructure([
+                'scout' => ['driver'],
             ]);
     });
 
@@ -133,11 +168,7 @@ describe('System Status Endpoint', function (): void {
             'Authorization' => 'Bearer test-license-key-12345',
         ]);
 
-        $response->assertOk()
-            ->assertJsonStructure([
-                'active_users',
-            ]);
-
+        $response->assertOk();
         expect($response->json('active_users'))->toBeInt();
     });
 
