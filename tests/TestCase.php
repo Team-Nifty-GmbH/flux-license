@@ -54,9 +54,7 @@ abstract class TestCase extends BaseTestCase
 
     protected function defineEnvironment($app): void
     {
-        if (! is_dir(database_path('settings'))) {
-            mkdir(database_path('settings'));
-        }
+        \Illuminate\Support\Facades\File::ensureDirectoryExists(database_path('settings'));
 
         $app['config']->set('database.default', env('DB_CONNECTION', 'sqlite'));
         $app['config']->set('database.connections.sqlite', [
