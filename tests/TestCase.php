@@ -8,7 +8,6 @@ use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Laravel\Scout\ScoutServiceProvider;
 use Livewire\LivewireServiceProvider;
-use Maatwebsite\Excel\ExcelServiceProvider;
 use NotificationChannels\WebPush\WebPushServiceProvider;
 use Orchestra\Testbench\Concerns\CreatesApplication;
 use Spatie\Activitylog\ActivitylogServiceProvider;
@@ -47,7 +46,6 @@ abstract class TestCase extends BaseTestCase
             FluxServiceProvider::class,
             WebPushServiceProvider::class,
             ServiceProvider::class,
-            ExcelServiceProvider::class,
             FluxLicenseServiceProvider::class,
         ];
     }
