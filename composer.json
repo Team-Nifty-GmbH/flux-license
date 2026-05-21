@@ -22,6 +22,7 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {
+        "composer/semver": "^3.3",
         "team-nifty-gmbh/flux-erp": "^1.0"
     },
     "require-dev": {
