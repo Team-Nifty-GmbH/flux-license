@@ -8,6 +8,7 @@ use FluxErp\Support\Notification\ToastNotification\NotificationAction;
 use FluxErp\Support\Notification\ToastNotification\ToastNotification;
 use FluxErp\Traits\Makeable;
 use Illuminate\Bus\Queueable;
+use Kreait\Firebase\Messaging\Notification as FcmNotification;
 use NotificationChannels\WebPush\WebPushMessage;
 
 class PackageUpdatesAvailable extends Notification implements HasToastNotification
@@ -46,5 +47,15 @@ class PackageUpdatesAvailable extends Notification implements HasToastNotificati
         }
 
         return $this->toToastNotification($notifiable)->toWebPush();
+    }
+
+    public function toFcm(object $notifiable): ?FcmNotification
+    {
+        return $this->toToastNotification($notifiable)->toFcm();
+    }
+
+    public function toFcmData(object $notifiable): array
+    {
+        return $this->toToastNotification($notifiable)->toFcmData();
     }
 }
