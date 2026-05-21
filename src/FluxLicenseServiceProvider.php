@@ -47,6 +47,7 @@ class FluxLicenseServiceProvider extends ServiceProvider
         $this->app->booted(function (): void {
             $scheduler = $this->app->make(Schedule::class);
             $scheduler->command(FluxLicenseSendUpdate::class)->daily();
+            $scheduler->command(FluxLicenseCheckPackageUpdates::class)->dailyAt('03:00');
         });
     }
 }
