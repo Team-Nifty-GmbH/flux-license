@@ -77,3 +77,37 @@ test('merges versions when a package appears in both root and includes', functio
 
     expect($result)->toBe(['team-nifty-gmbh/flux-erp' => '1.5.0']);
 });
+
+test('ignores unstable versions when picking the highest', function (): void {
+    Http::fake([
+        'packages.nuxbe.io/packages.json' => Http::response([
+            'packages' => [
+                'team-nifty-gmbh/flux-erp' => [
+                    '1.5.0' => ['name' => 'team-nifty-gmbh/flux-erp', 'version' => '1.5.0'],
+                    '2.0.0-beta1' => ['name' => 'team-nifty-gmbh/flux-erp', 'version' => '2.0.0-beta1'],
+                    'dev-main' => ['name' => 'team-nifty-gmbh/flux-erp', 'version' => 'dev-main'],
+                ],
+            ],
+        ], 200),
+    ]);
+
+    $result = app(NuxbePackagesClient::class)->latestVersions(['team-nifty-gmbh/flux-erp']);
+
+    expect($result)->toBe(['team-nifty-gmbh/flux-erp' => '1.5.0']);
+});
+
+test('omits packages from the result when they have no stable version', function (): void {
+    Http::fake([
+        'packages.nuxbe.io/packages.json' => Http::response([
+            'packages' => [
+                'team-nifty-gmbh/flux-erp' => [
+                    '2.0.0-beta1' => ['name' => 'team-nifty-gmbh/flux-erp', 'version' => '2.0.0-beta1'],
+                ],
+            ],
+        ], 200),
+    ]);
+
+    $result = app(NuxbePackagesClient::class)->latestVersions(['team-nifty-gmbh/flux-erp']);
+
+    expect($result)->toBe([]);
+});
