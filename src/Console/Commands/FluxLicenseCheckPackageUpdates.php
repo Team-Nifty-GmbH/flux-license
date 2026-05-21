@@ -6,9 +6,11 @@ use Composer\Semver\Comparator;
 use FluxErp\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use TeamNiftyGmbH\FluxLicense\Notifications\PackageUpdatesAvailable;
 use TeamNiftyGmbH\FluxLicense\Support\NuxbePackagesClient;
+use Throwable;
 
 class FluxLicenseCheckPackageUpdates extends Command
 {
@@ -18,13 +20,29 @@ class FluxLicenseCheckPackageUpdates extends Command
 
     public function handle(NuxbePackagesClient $client): int
     {
+        if (! file_exists(base_path('composer.lock'))) {
+            Log::error('flux-license:check-package-updates: composer.lock not found');
+            $this->error('composer.lock not found');
+
+            return self::FAILURE;
+        }
+
         $installed = $this->getNuxbePackagesFromLock();
 
         if ($installed === []) {
             return self::SUCCESS;
         }
 
-        $latest = $client->latestVersions(array_keys($installed));
+        try {
+            $latest = $client->latestVersions(array_keys($installed));
+        } catch (Throwable $e) {
+            Log::error('flux-license:check-package-updates: failed to fetch packages.json', [
+                'exception' => $e->getMessage(),
+            ]);
+            $this->error('Failed to fetch packages.json: ' . $e->getMessage());
+
+            return self::FAILURE;
+        }
 
         $updates = [];
         foreach ($installed as $name => $current) {

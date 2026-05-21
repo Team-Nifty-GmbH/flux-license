@@ -4,6 +4,7 @@ use FluxErp\Models\User;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use FluxErp\Models\Role;
 use TeamNiftyGmbH\FluxLicense\Console\Commands\FluxLicenseCheckPackageUpdates;
@@ -162,4 +163,61 @@ test('re-sends when a newer available version appears', function (): void {
     Artisan::call('flux-license:check-package-updates');
 
     Notification::assertSentToTimes($admin, PackageUpdatesAvailable::class, 2);
+});
+
+test('returns failure and logs when composer.lock is missing', function (): void {
+    Notification::fake();
+    File::delete(base_path('composer.lock'));
+
+    Log::spy();
+
+    $exitCode = Artisan::call('flux-license:check-package-updates');
+
+    expect($exitCode)->toBe(1);
+    Log::shouldHaveReceived('error')->once();
+    Notification::assertNothingSent();
+});
+
+test('returns failure and logs when packages.json fetch fails', function (): void {
+    Notification::fake();
+    Log::spy();
+
+    Http::fake([
+        'packages.nuxbe.io/packages.json' => Http::response(null, 500),
+    ]);
+
+    Role::factory()->create(['name' => 'Super Admin', 'guard_name' => 'web']);
+    $admin = User::factory()->create([
+        'is_active' => true,
+        'language_id' => $this->defaultLanguage->getKey(),
+    ]);
+    $admin->assignRole('Super Admin');
+
+    $exitCode = Artisan::call('flux-license:check-package-updates');
+
+    expect($exitCode)->toBe(1);
+    Log::shouldHaveReceived('error')->once();
+    Notification::assertNothingSent();
+});
+
+test('succeeds silently when there are no super admins', function (): void {
+    Notification::fake();
+
+    Http::fake([
+        'packages.nuxbe.io/packages.json' => Http::response([
+            'packages' => [
+                'team-nifty-gmbh/flux-erp' => [
+                    '1.2.0' => ['name' => 'team-nifty-gmbh/flux-erp', 'version' => '1.2.0'],
+                ],
+            ],
+        ], 200),
+    ]);
+
+    Role::factory()->create(['name' => 'Super Admin', 'guard_name' => 'web']);
+    // No user gets the role.
+
+    $exitCode = Artisan::call('flux-license:check-package-updates');
+
+    expect($exitCode)->toBe(0);
+    Notification::assertNothingSent();
 });
