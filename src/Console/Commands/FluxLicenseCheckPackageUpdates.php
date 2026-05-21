@@ -2,7 +2,12 @@
 
 namespace TeamNiftyGmbH\FluxLicense\Console\Commands;
 
+use Composer\Semver\Comparator;
+use FluxErp\Models\User;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Notification;
+use TeamNiftyGmbH\FluxLicense\Notifications\PackageUpdatesAvailable;
+use TeamNiftyGmbH\FluxLicense\Support\NuxbePackagesClient;
 
 class FluxLicenseCheckPackageUpdates extends Command
 {
@@ -10,8 +15,47 @@ class FluxLicenseCheckPackageUpdates extends Command
 
     protected $signature = 'flux-license:check-package-updates';
 
-    public function handle(): int
+    public function handle(NuxbePackagesClient $client): int
     {
+        $installed = $this->getNuxbePackagesFromLock();
+
+        if ($installed === []) {
+            return self::SUCCESS;
+        }
+
+        $latest = $client->latestVersions(array_keys($installed));
+
+        $updates = [];
+        foreach ($installed as $name => $current) {
+            $available = $latest[$name] ?? null;
+
+            if ($available === null) {
+                continue;
+            }
+
+            if (! Comparator::greaterThan($available, $current)) {
+                continue;
+            }
+
+            $updates[] = [
+                'name' => $name,
+                'current' => $current,
+                'available' => $available,
+            ];
+        }
+
+        if ($updates === []) {
+            return self::SUCCESS;
+        }
+
+        $admins = User::role('Super Admin')->get();
+
+        if ($admins->isEmpty()) {
+            return self::SUCCESS;
+        }
+
+        Notification::send($admins, new PackageUpdatesAvailable($updates));
+
         return self::SUCCESS;
     }
 
