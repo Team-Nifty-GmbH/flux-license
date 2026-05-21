@@ -5,6 +5,7 @@ namespace TeamNiftyGmbH\FluxLicense\Console\Commands;
 use Composer\Semver\Comparator;
 use FluxErp\Models\User;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
 use TeamNiftyGmbH\FluxLicense\Notifications\PackageUpdatesAvailable;
 use TeamNiftyGmbH\FluxLicense\Support\NuxbePackagesClient;
@@ -37,6 +38,10 @@ class FluxLicenseCheckPackageUpdates extends Command
                 continue;
             }
 
+            if (Cache::get($this->cacheKey($name)) === $available) {
+                continue;
+            }
+
             $updates[] = [
                 'name' => $name,
                 'current' => $current,
@@ -56,7 +61,16 @@ class FluxLicenseCheckPackageUpdates extends Command
 
         Notification::send($admins, new PackageUpdatesAvailable($updates));
 
+        foreach ($updates as $update) {
+            Cache::forever($this->cacheKey($update['name']), $update['available']);
+        }
+
         return self::SUCCESS;
+    }
+
+    protected function cacheKey(string $packageName): string
+    {
+        return 'flux-license:last-notified-update:' . $packageName;
     }
 
     public function getNuxbePackagesFromLock(): array

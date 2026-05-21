@@ -101,3 +101,65 @@ test('sends a notification to all super admins when nuxbe packages have updates'
 
     Notification::assertNotSentTo($otherUser, PackageUpdatesAvailable::class);
 });
+
+test('does not re-send the same available version on subsequent runs', function (): void {
+    Notification::fake();
+
+    Http::fake([
+        'packages.nuxbe.io/packages.json' => Http::response([
+            'packages' => [
+                'team-nifty-gmbh/flux-erp' => [
+                    '1.2.0' => ['name' => 'team-nifty-gmbh/flux-erp', 'version' => '1.2.0'],
+                ],
+            ],
+        ], 200),
+    ]);
+
+    Role::factory()->create(['name' => 'Super Admin', 'guard_name' => 'web']);
+
+    $admin = User::factory()->create([
+        'is_active' => true,
+        'language_id' => $this->defaultLanguage->getKey(),
+    ]);
+    $admin->assignRole('Super Admin');
+
+    Artisan::call('flux-license:check-package-updates');
+    Artisan::call('flux-license:check-package-updates');
+
+    Notification::assertSentToTimes($admin, PackageUpdatesAvailable::class, 1);
+});
+
+test('re-sends when a newer available version appears', function (): void {
+    Notification::fake();
+
+    Role::factory()->create(['name' => 'Super Admin', 'guard_name' => 'web']);
+
+    $admin = User::factory()->create([
+        'is_active' => true,
+        'language_id' => $this->defaultLanguage->getKey(),
+    ]);
+    $admin->assignRole('Super Admin');
+
+    Http::fake([
+        'packages.nuxbe.io/packages.json' => Http::sequence()
+            ->push([
+                'packages' => [
+                    'team-nifty-gmbh/flux-erp' => [
+                        '1.2.0' => ['name' => 'team-nifty-gmbh/flux-erp', 'version' => '1.2.0'],
+                    ],
+                ],
+            ], 200)
+            ->push([
+                'packages' => [
+                    'team-nifty-gmbh/flux-erp' => [
+                        '1.3.0' => ['name' => 'team-nifty-gmbh/flux-erp', 'version' => '1.3.0'],
+                    ],
+                ],
+            ], 200),
+    ]);
+
+    Artisan::call('flux-license:check-package-updates');
+    Artisan::call('flux-license:check-package-updates');
+
+    Notification::assertSentToTimes($admin, PackageUpdatesAvailable::class, 2);
+});
