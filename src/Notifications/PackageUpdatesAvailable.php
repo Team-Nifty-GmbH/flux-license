@@ -45,6 +45,6 @@ class PackageUpdatesAvailable extends Notification implements HasToastNotificati
             return null;
         }
 
-        return $this->toToastNotification($notifiable)->toWebPush($notifiable);
+        return $this->toToastNotification($notifiable)->toWebPush();
     }
 }
