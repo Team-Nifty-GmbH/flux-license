@@ -86,11 +86,6 @@ class FluxLicenseCheckPackageUpdates extends Command
         return self::SUCCESS;
     }
 
-    protected function cacheKey(string $packageName): string
-    {
-        return 'flux-license:last-notified-update:' . $packageName;
-    }
-
     public function getNuxbePackagesFromLock(): array
     {
         $lockPath = base_path('composer.lock');
@@ -118,5 +113,10 @@ class FluxLicenseCheckPackageUpdates extends Command
         }
 
         return $result;
+    }
+
+    protected function cacheKey(string $packageName): string
+    {
+        return 'flux-license:last-notified-update:' . $packageName;
     }
 }

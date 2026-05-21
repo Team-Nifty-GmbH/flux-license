@@ -72,7 +72,7 @@ test('merges versions when a package appears in both root and includes', functio
         ], 200),
     ]);
 
-    $result = app(\TeamNiftyGmbH\FluxLicense\Support\NuxbePackagesClient::class)
+    $result = app(NuxbePackagesClient::class)
         ->latestVersions(['team-nifty-gmbh/flux-erp']);
 
     expect($result)->toBe(['team-nifty-gmbh/flux-erp' => '1.5.0']);

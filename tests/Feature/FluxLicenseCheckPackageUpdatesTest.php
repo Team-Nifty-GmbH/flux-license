@@ -1,12 +1,12 @@
 <?php
 
+use FluxErp\Models\Role;
 use FluxErp\Models\User;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
-use FluxErp\Models\Role;
 use TeamNiftyGmbH\FluxLicense\Console\Commands\FluxLicenseCheckPackageUpdates;
 use TeamNiftyGmbH\FluxLicense\Notifications\PackageUpdatesAvailable;
 
