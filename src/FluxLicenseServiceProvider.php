@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use TeamNiftyGmbH\FluxLicense\Console\Commands\FluxLicenseCheckPackageUpdates;
 use TeamNiftyGmbH\FluxLicense\Console\Commands\FluxLicenseSendUpdate;
 use TeamNiftyGmbH\FluxLicense\Console\Commands\Install;
 use TeamNiftyGmbH\FluxLicense\Http\Controllers\SystemStatusController;
@@ -38,6 +39,7 @@ class FluxLicenseServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->commands([
+            FluxLicenseCheckPackageUpdates::class,
             FluxLicenseSendUpdate::class,
             Install::class,
         ]);
