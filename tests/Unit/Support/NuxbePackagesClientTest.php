@@ -50,3 +50,30 @@ test('follows Satis includes to find packages', function (): void {
 
     expect($result)->toBe(['team-nifty-gmbh/flux-erp' => '2.0.0']);
 });
+
+test('merges versions when a package appears in both root and includes', function (): void {
+    Http::fake([
+        'packages.nuxbe.io/packages.json' => Http::response([
+            'packages' => [
+                'team-nifty-gmbh/flux-erp' => [
+                    '1.0.0' => ['name' => 'team-nifty-gmbh/flux-erp', 'version' => '1.0.0'],
+                ],
+            ],
+            'includes' => [
+                'include/all$abc.json' => ['sha1' => 'abc'],
+            ],
+        ], 200),
+        'packages.nuxbe.io/include/all$abc.json' => Http::response([
+            'packages' => [
+                'team-nifty-gmbh/flux-erp' => [
+                    '1.5.0' => ['name' => 'team-nifty-gmbh/flux-erp', 'version' => '1.5.0'],
+                ],
+            ],
+        ], 200),
+    ]);
+
+    $result = app(\TeamNiftyGmbH\FluxLicense\Support\NuxbePackagesClient::class)
+        ->latestVersions(['team-nifty-gmbh/flux-erp']);
+
+    expect($result)->toBe(['team-nifty-gmbh/flux-erp' => '1.5.0']);
+});

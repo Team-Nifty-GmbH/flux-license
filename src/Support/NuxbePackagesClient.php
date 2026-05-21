@@ -42,7 +42,10 @@ class NuxbePackagesClient
 
         foreach (array_keys(data_get($root, 'includes', [])) as $relativeUrl) {
             $included = $this->fetchJson(self::REPOSITORY_URL . '/' . ltrim($relativeUrl, '/'));
-            $packages = array_merge_recursive($packages, data_get($included, 'packages', []));
+
+            foreach (data_get($included, 'packages', []) as $name => $versions) {
+                $packages[$name] = array_merge($packages[$name] ?? [], $versions);
+            }
         }
 
         return $packages;
