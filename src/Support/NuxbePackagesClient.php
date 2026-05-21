@@ -12,12 +12,7 @@ class NuxbePackagesClient
 
     public function latestVersions(array $packageNames): array
     {
-        $response = Http::timeout(10)
-            ->acceptJson()
-            ->get(self::REPOSITORY_URL . '/packages.json')
-            ->throw();
-
-        $packages = data_get($response->json(), 'packages', []);
+        $packages = $this->loadAllPackages();
 
         $result = [];
         foreach ($packageNames as $name) {
@@ -37,5 +32,28 @@ class NuxbePackagesClient
         }
 
         return $result;
+    }
+
+    protected function loadAllPackages(): array
+    {
+        $root = $this->fetchJson(self::REPOSITORY_URL . '/packages.json');
+
+        $packages = data_get($root, 'packages', []);
+
+        foreach (array_keys(data_get($root, 'includes', [])) as $relativeUrl) {
+            $included = $this->fetchJson(self::REPOSITORY_URL . '/' . ltrim($relativeUrl, '/'));
+            $packages = array_merge_recursive($packages, data_get($included, 'packages', []));
+        }
+
+        return $packages;
+    }
+
+    protected function fetchJson(string $url): array
+    {
+        return Http::timeout(10)
+            ->acceptJson()
+            ->get($url)
+            ->throw()
+            ->json() ?? [];
     }
 }
