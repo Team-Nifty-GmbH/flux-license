@@ -12,6 +12,8 @@ use Illuminate\Support\ServiceProvider;
 use TeamNiftyGmbH\FluxLicense\Console\Commands\FluxLicenseCheckPackageUpdates;
 use TeamNiftyGmbH\FluxLicense\Console\Commands\FluxLicenseSendUpdate;
 use TeamNiftyGmbH\FluxLicense\Console\Commands\Install;
+use TeamNiftyGmbH\FluxLicense\Console\Commands\MaintenanceBegin;
+use TeamNiftyGmbH\FluxLicense\Console\Commands\MaintenanceEnd;
 use TeamNiftyGmbH\FluxLicense\Http\Controllers\SystemStatusController;
 
 class FluxLicenseServiceProvider extends ServiceProvider
@@ -42,6 +44,8 @@ class FluxLicenseServiceProvider extends ServiceProvider
             FluxLicenseCheckPackageUpdates::class,
             FluxLicenseSendUpdate::class,
             Install::class,
+            MaintenanceBegin::class,
+            MaintenanceEnd::class,
         ]);
 
         $this->app->booted(function (): void {
