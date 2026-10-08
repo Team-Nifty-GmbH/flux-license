@@ -9,12 +9,14 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Livewire\ComponentHookRegistry;
 use TeamNiftyGmbH\FluxLicense\Console\Commands\FluxLicenseCheckPackageUpdates;
 use TeamNiftyGmbH\FluxLicense\Console\Commands\FluxLicenseSendUpdate;
 use TeamNiftyGmbH\FluxLicense\Console\Commands\Install;
 use TeamNiftyGmbH\FluxLicense\Console\Commands\MaintenanceBegin;
 use TeamNiftyGmbH\FluxLicense\Console\Commands\MaintenanceEnd;
 use TeamNiftyGmbH\FluxLicense\Http\Controllers\SystemStatusController;
+use TeamNiftyGmbH\FluxLicense\Livewire\ConfirmBillableUserActivation;
 
 class FluxLicenseServiceProvider extends ServiceProvider
 {
@@ -22,6 +24,8 @@ class FluxLicenseServiceProvider extends ServiceProvider
     {
         Route::middleware('throttle:10,1')
             ->get('api/flux-license/system-status', SystemStatusController::class);
+
+        $this->loadJsonTranslationsFrom(__DIR__ . '/../lang');
 
         Event::listen(
             'action.executed: ' . resolve_static(UpdateUser::class, 'class'),
@@ -47,6 +51,9 @@ class FluxLicenseServiceProvider extends ServiceProvider
             MaintenanceBegin::class,
             MaintenanceEnd::class,
         ]);
+
+        // Livewire boots its hooks before this provider's boot() runs
+        ComponentHookRegistry::register(ConfirmBillableUserActivation::class);
 
         $this->app->booted(function (): void {
             $scheduler = $this->app->make(Schedule::class);

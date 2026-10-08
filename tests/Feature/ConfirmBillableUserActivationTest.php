@@ -1,0 +1,115 @@
+<?php
+
+use FluxErp\Livewire\Settings\UserEdit;
+use FluxErp\Livewire\Settings\Users;
+use FluxErp\Models\User;
+use Illuminate\Support\Facades\Http;
+use Livewire\Features\SupportTesting\Testable;
+use Livewire\Livewire;
+
+function fakeLicensePricing(array $pricing = []): void
+{
+    Http::fake([
+        'flux.team-nifty.com/api/flux-licenses/test-license-key-12345/pricing' => Http::response(array_merge([
+            'unit_price' => '35.00',
+            'currency' => 'EUR',
+            'free_accounts' => 0,
+            'min_accounts' => 1,
+            'max_accounts' => 999,
+        ], $pricing)),
+        'flux.team-nifty.com/*' => Http::response(),
+    ]);
+}
+
+function newUserForm(bool $isActive = true): Testable
+{
+    return Livewire::test(Users::class)
+        ->set('userForm.firstname', 'Jane')
+        ->set('userForm.lastname', 'Doe')
+        ->set('userForm.email', 'jane@example.com')
+        ->set('userForm.password', 'Password123!')
+        ->set('userForm.user_code', 'JD')
+        ->set('userForm.language_id', test()->defaultLanguage->getKey())
+        ->set('userForm.is_active', $isActive);
+}
+
+test('creating a billable active user asks for confirmation and saves nothing', function (): void {
+    fakeLicensePricing();
+
+    newUserForm()
+        ->call('save')
+        ->assertDispatched(
+            'ts-ui:dialog',
+            fn (string $name, array $params) => str_contains($params['description'], '35.00')
+                && $params['options']['confirm']['method'] === 'save'
+        );
+
+    expect(User::query()->where('email', 'jane@example.com')->exists())->toBeFalse();
+});
+
+test('the confirmed save creates the user', function (): void {
+    fakeLicensePricing();
+
+    newUserForm()
+        ->call('save', 'flux-license:confirmed')
+        ->assertNotDispatched('ts-ui:dialog');
+
+    expect(User::query()->where('email', 'jane@example.com')->value('is_active'))->toBeTrue();
+});
+
+test('a user within the free accounts needs no confirmation', function (): void {
+    fakeLicensePricing(['free_accounts' => 5]);
+
+    newUserForm()
+        ->call('save')
+        ->assertNotDispatched('ts-ui:dialog');
+
+    expect(User::query()->where('email', 'jane@example.com')->exists())->toBeTrue();
+});
+
+test('an inactive user needs no confirmation', function (): void {
+    fakeLicensePricing();
+
+    newUserForm(isActive: false)
+        ->call('save')
+        ->assertNotDispatched('ts-ui:dialog');
+
+    expect(User::query()->where('email', 'jane@example.com')->exists())->toBeTrue();
+});
+
+test('without pricing the activation still has to be confirmed', function (): void {
+    Http::fake([
+        'flux.team-nifty.com/api/flux-licenses/test-license-key-12345/pricing' => Http::response(status: 500),
+        'flux.team-nifty.com/*' => Http::response(),
+    ]);
+
+    newUserForm()
+        ->call('save')
+        ->assertDispatched('ts-ui:dialog');
+
+    expect(User::query()->where('email', 'jane@example.com')->exists())->toBeFalse();
+});
+
+test('activating an inactive user on the edit page asks for confirmation', function (): void {
+    fakeLicensePricing();
+    $user = User::factory()->create(['is_active' => false, 'language_id' => $this->defaultLanguage->getKey()]);
+
+    Livewire::test(UserEdit::class, ['user' => $user])
+        ->set('userForm.is_active', true)
+        ->call('save')
+        ->assertDispatched('ts-ui:dialog');
+
+    expect($user->refresh()->is_active)->toBeFalse();
+});
+
+test('saving an already active user on the edit page needs no confirmation', function (): void {
+    fakeLicensePricing();
+    $user = User::factory()->create(['is_active' => true, 'language_id' => $this->defaultLanguage->getKey()]);
+
+    Livewire::test(UserEdit::class, ['user' => $user])
+        ->set('userForm.firstname', 'Changed')
+        ->call('save')
+        ->assertNotDispatched('ts-ui:dialog');
+
+    expect($user->refresh()->firstname)->toBe('Changed');
+});

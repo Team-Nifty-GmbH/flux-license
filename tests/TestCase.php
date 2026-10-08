@@ -60,6 +60,7 @@ abstract class TestCase extends BaseTestCase
             'database' => ':memory:',
             'prefix' => '',
         ]);
+        $app['config']->set('app.key', 'base64:' . base64_encode(str_repeat('a', 32)));
         $app['config']->set('flux.install_done', true);
         $app['config']->set('auth.defaults.guard', 'sanctum');
         $app['config']->set('cache.default', 'array');
