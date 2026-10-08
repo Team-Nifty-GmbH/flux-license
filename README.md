@@ -6,6 +6,8 @@ License management for Flux ERP.
 
 Activating a user under Settings → Users (create modal or edit page) asks for confirmation when the user adds to the license bill. The price comes from `flux.team-nifty.com/api/flux-licenses/{license_key}/pricing`, is cached for a day and checked against the free, minimum and maximum accounts of the license. When the price cannot be fetched, the confirmation is asked anyway without naming it. Activations through the API are not affected.
 
+Every confirmed activation is reported to `flux.team-nifty.com/api/flux-licenses/{license_key}/user-activations` with the activated user, the confirming user, IP address, user agent, the price shown and the time. The report is a queued job (`ReportUserActivation`) with retries, so it survives a license server that is briefly unreachable.
+
 ## Maintenance window
 
 `flux-license:maintenance-begin` takes an instance offline without breaking running work:

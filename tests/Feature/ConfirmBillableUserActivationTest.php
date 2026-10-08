@@ -4,8 +4,10 @@ use FluxErp\Livewire\Settings\UserEdit;
 use FluxErp\Livewire\Settings\Users;
 use FluxErp\Models\User;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
+use TeamNiftyGmbH\FluxLicense\Jobs\ReportUserActivation;
 
 function fakeLicensePricing(array $pricing = []): void
 {
@@ -112,4 +114,56 @@ test('saving an already active user on the edit page needs no confirmation', fun
         ->assertNotDispatched('ts-ui:dialog');
 
     expect($user->refresh()->firstname)->toBe('Changed');
+});
+
+test('the confirmed activation is reported with who confirmed it', function (): void {
+    fakeLicensePricing();
+    Queue::fake();
+    $this->travelTo('2026-10-08 09:15:00');
+
+    newUserForm()
+        ->call('save', 'flux-license:confirmed');
+
+    Queue::assertPushed(ReportUserActivation::class, fn (ReportUserActivation $job): bool => $job->data === [
+        'activated_user_email' => 'jane@example.com',
+        'activated_user_name' => User::query()->where('email', 'jane@example.com')->value('name'),
+        'confirmed_by_email' => $this->user->email,
+        'confirmed_by_name' => $this->user->name,
+        'ip_address' => '127.0.0.1',
+        'user_agent' => 'Symfony',
+        'unit_price' => '35.00',
+        'currency' => 'EUR',
+        'confirmed_at' => '2026-10-08T09:15:00+00:00',
+    ]);
+});
+
+test('nothing is reported while the activation is not confirmed', function (): void {
+    fakeLicensePricing();
+    Queue::fake();
+
+    newUserForm()->call('save');
+
+    Queue::assertNotPushed(ReportUserActivation::class);
+});
+
+test('nothing is reported when the confirmed save fails', function (): void {
+    fakeLicensePricing();
+    Queue::fake();
+
+    newUserForm()
+        ->set('userForm.email', 'not-an-email')
+        ->call('save', 'flux-license:confirmed');
+
+    Queue::assertNotPushed(ReportUserActivation::class);
+});
+
+test('the report is sent to the license server', function (): void {
+    Http::fake(['flux.team-nifty.com/*' => Http::response(status: 201)]);
+
+    (new ReportUserActivation(['activated_user_email' => 'jane@example.com']))->handle();
+
+    Http::assertSent(fn ($request): bool => $request->method() === 'POST'
+        && $request->url() === 'https://flux.team-nifty.com/api/flux-licenses/test-license-key-12345/user-activations'
+        && $request['activated_user_email'] === 'jane@example.com'
+    );
 });
