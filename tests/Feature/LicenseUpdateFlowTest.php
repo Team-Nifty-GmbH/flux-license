@@ -6,6 +6,13 @@ use FluxErp\Models\User;
 use FluxErp\Settings\CoreSettings;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
+use TeamNiftyGmbH\FluxLicense\Jobs\ReportUserActivation;
+
+// User activations get reported through the queue, that would add requests to the fakes here
+beforeEach(function (): void {
+    Queue::fake([ReportUserActivation::class]);
+});
 
 test('creating a new user triggers license update', function (): void {
     Http::fake([

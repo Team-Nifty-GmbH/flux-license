@@ -8,12 +8,14 @@ use FluxErp\Models\Tenant;
 use FluxErp\Models\User;
 use FluxErp\Models\VatRate;
 use FluxErp\Settings\CoreSettings;
+use Illuminate\Support\Facades\Http;
 use TeamNiftyGmbH\FluxLicense\Tests\TestCase;
 
 pest()
     ->extend(TestCase::class)
     ->beforeEach(function (): void {
         config(['app.debug' => true]);
+        Http::preventStrayRequests();
         CoreSettings::fake([
             'install_done' => false,
             'license_key' => 'test-license-key-12345',
