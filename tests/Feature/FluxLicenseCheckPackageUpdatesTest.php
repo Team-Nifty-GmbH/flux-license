@@ -7,10 +7,13 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Queue;
 use TeamNiftyGmbH\FluxLicense\Console\Commands\FluxLicenseCheckPackageUpdates;
+use TeamNiftyGmbH\FluxLicense\Jobs\ReportUserActivation;
 use TeamNiftyGmbH\FluxLicense\Notifications\PackageUpdatesAvailable;
 
 beforeEach(function (): void {
+    Queue::fake([ReportUserActivation::class]);
     // Write a controlled composer.lock fixture into the testbench base_path.
     $this->originalLock = File::exists(base_path('composer.lock'))
         ? File::get(base_path('composer.lock'))
