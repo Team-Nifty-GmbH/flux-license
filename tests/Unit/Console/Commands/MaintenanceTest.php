@@ -24,7 +24,7 @@ test('begin takes the app down, pauses all queues and interrupts the schedule', 
 
     expect(app()->isDownForMaintenance())->toBeTrue()
         ->and(Queue::isPaused('database', 'default'))->toBeTrue()
-        ->and(Cache::get('illuminate:schedule:interrupt'))->toBeTrue();
+        ->and(Cache::get('illuminate:schedule:interrupt'))->toBeTruthy();
 });
 
 test('begin waits until running jobs are finished', function (): void {
