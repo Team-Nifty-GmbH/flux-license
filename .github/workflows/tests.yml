@@ -73,18 +73,6 @@ jobs:
       - name: Install Composer dependencies
         run: composer install --no-progress --prefer-dist --optimize-autoloader
 
-      - name: Create schema
-        run: |
-          ./vendor/bin/testbench migrate --force
-          ./vendor/bin/testbench schema:dump
-        env:
-          DB_CONNECTION: mysql
-          DB_HOST: mysql
-          DB_PORT: 3306
-          DB_DATABASE: testing
-          DB_USERNAME: root
-          DB_PASSWORD: password
-
       - name: Run Tests
         run: ./vendor/bin/testbench package:test
         env:
