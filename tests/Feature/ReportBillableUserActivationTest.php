@@ -4,6 +4,7 @@ use FluxErp\Actions\User\CreateUser;
 use FluxErp\Actions\User\UpdateUser;
 use FluxErp\Models\Permission;
 use FluxErp\Models\User;
+use FluxErp\Settings\CoreSettings;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
@@ -128,4 +129,13 @@ test('the job sends the activation when the price is unknown', function (): void
 
     expect(reportsSent())->toHaveCount(1)
         ->and(reportsSent()[0][0]['unit_price'])->toBeNull();
+});
+
+test('an activation on an instance without a license key is not reported', function (): void {
+    fakePricing();
+    app(CoreSettings::class)->license_key = null;
+
+    CreateUser::make(newUserData())->validate()->execute();
+
+    Queue::assertNotPushed(ReportUserActivation::class);
 });

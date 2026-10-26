@@ -26,6 +26,11 @@ class ReportUserActivation implements ShouldQueue
     // Called for every user that just became active, whichever way it happened
     public static function forUser(User $user): void
     {
+        // Without a license (dev, CI, demo builds) there is nothing to bill and nowhere to report to
+        if (blank(app(CoreSettings::class)->license_key)) {
+            return;
+        }
+
         $actor = auth()->user();
         $token = method_exists($actor ?? '', 'currentAccessToken') ? $actor->currentAccessToken() : null;
 
