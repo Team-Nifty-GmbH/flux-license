@@ -14,11 +14,12 @@ class MaintenanceBegin extends Command
     protected $signature = 'flux-license:maintenance-begin
         {--retry=60 : Retry-After header in seconds sent with the 503 response}
         {--secret= : Secret that lets a request bypass maintenance mode}
-        {--timeout=300 : Seconds to wait for running jobs to finish}';
+        {--timeout=300 : Seconds to wait for running jobs to finish}
+        {--no-down : Only pause the queues and wait for running jobs, the app keeps answering}';
 
     public function handle(): int
     {
-        if (! $this->laravel->isDownForMaintenance()) {
+        if (! $this->option('no-down') && ! $this->laravel->isDownForMaintenance()) {
             $this->call('down', array_filter([
                 '--retry' => $this->option('retry'),
                 '--secret' => $this->option('secret'),

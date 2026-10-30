@@ -19,6 +19,8 @@ Every activation of a billable user is reported to `flux.team-nifty.com/api/flux
 
 If jobs are still running after the timeout, the command exits non-zero and leaves the instance down and paused.
 
+`--no-down` skips step 1: the queues are drained while the app keeps answering. Running it first and the plain command afterwards keeps the 503 window short when a long job has to finish, for example before a server snapshot of many instances.
+
 `flux-license:maintenance-end` resumes the queues (and Horizon), brings the app up and, with `--health-url`, fails unless that URL answers with a 2xx status. Both commands are idempotent.
 
 ### Deploy script (Forge)

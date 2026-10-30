@@ -64,6 +64,15 @@ test('begin fails after the timeout and stays in maintenance', function (): void
         ->and(Queue::isPaused('database', 'default'))->toBeTrue();
 });
 
+test('begin with no-down drains the queues and keeps the app up', function (): void {
+    $this->artisan('flux-license:maintenance-begin', ['--no-down' => true])
+        ->assertSuccessful();
+
+    expect(app()->isDownForMaintenance())->toBeFalse()
+        ->and(Queue::isPaused('database', 'default'))->toBeTrue()
+        ->and(Cache::get('illuminate:schedule:interrupt'))->toBeTruthy();
+});
+
 test('begin is idempotent', function (): void {
     $this->artisan('flux-license:maintenance-begin')->assertSuccessful();
     $this->artisan('flux-license:maintenance-begin')->assertSuccessful();
