@@ -29,6 +29,19 @@ test('command sends update to flux server with active users count', function ():
     });
 });
 
+test('command sends the host of the app url so the server can tell a copy from the instance', function (): void {
+    Http::fake([
+        'flux.team-nifty.com/*' => Http::response(['success' => true], 200),
+    ]);
+
+    config(['app.url' => 'https://Flux.Example.com/']);
+
+    $this->artisan('flux-license:send-update')
+        ->assertSuccessful();
+
+    Http::assertSent(fn ($request) => $request['domain'] === 'flux.example.com');
+});
+
 test('command sends correct user emails', function (): void {
     Http::fake([
         'flux.team-nifty.com/*' => Http::response(['success' => true], 200),

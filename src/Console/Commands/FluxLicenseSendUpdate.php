@@ -30,6 +30,7 @@ class FluxLicenseSendUpdate extends Command
             [
                 'active_users' => User::query()->where('is_active', true)->count(),
                 'users' => User::query()->where('is_active', true)->get(['email'])->toArray(),
+                'domain' => strtolower((string) parse_url((string) config('app.url'), PHP_URL_HOST)),
             ]
         );
 
