@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Number;
+use TeamNiftyGmbH\FluxLicense\Support\InstalledPackages;
 
 class SystemStatusController
 {
@@ -82,36 +83,9 @@ class SystemStatusController
             'scout' => [
                 'driver' => config('scout.driver'),
             ],
-            'packages' => $this->getInstalledPackages(),
+            'packages' => InstalledPackages::all(),
             'active_users' => User::query()->where('is_active', true)->count(),
         ]);
-    }
-
-    protected function getInstalledPackages(): array
-    {
-        $lockFile = base_path('composer.lock');
-
-        if (! file_exists($lockFile)) {
-            return [];
-        }
-
-        $lock = json_decode(file_get_contents($lockFile), true);
-
-        return collect(data_get($lock, 'packages', []))
-            ->filter(fn (array $package) => str_starts_with($package['name'], 'team-nifty-gmbh/')
-                || str_starts_with($package['name'], 'laravel/')
-                || str_starts_with($package['name'], 'livewire/')
-                || str_starts_with($package['name'], 'tallstackui/')
-                || str_starts_with($package['name'], 'saloonphp/')
-                || str_starts_with($package['name'], 'spatie/')
-            )
-            ->mapWithKeys(fn (array $package) => [
-                $package['name'] => [
-                    'version' => $package['version'],
-                ],
-            ])
-            ->sortKeys()
-            ->toArray();
     }
 
     protected function getBroadcastingInfo(): array
