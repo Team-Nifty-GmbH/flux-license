@@ -7,6 +7,7 @@ use FluxErp\Actions\User\UpdateUser;
 use FluxErp\Models\User;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Events\MigrationsEnded;
+use Illuminate\Database\Events\NoPendingMigrations;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
@@ -31,7 +32,7 @@ class FluxLicenseServiceProvider extends ServiceProvider
 
         $this->loadJsonTranslationsFrom(__DIR__ . '/../lang');
 
-        Event::listen(MigrationsEnded::class, ReportInstalledPackages::class);
+        Event::listen([MigrationsEnded::class, NoPendingMigrations::class], ReportInstalledPackages::class);
 
         Event::listen(
             'action.executed: ' . resolve_static(UpdateUser::class, 'class'),
