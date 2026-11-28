@@ -1,7 +1,9 @@
 <?php
 
+use FluxErp\Models\Tenant;
 use FluxErp\Models\User;
 use FluxErp\Settings\CoreSettings;
+use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use TeamNiftyGmbH\FluxLicense\Jobs\ReportUserActivation;
@@ -138,4 +140,64 @@ test('command outputs success message on successful request', function (): void 
     $this->artisan('flux-license:send-update')
         ->expectsOutput('Successfully sent update to flux.team-nifty.com')
         ->assertSuccessful();
+});
+
+test('command sends the tenants of every user', function (): void {
+    Http::fake([
+        'flux.team-nifty.com/*' => Http::response(['success' => true], 200),
+    ]);
+
+    $gmbh = Tenant::factory()->create(['name' => 'Restaurant GmbH']);
+    $gbr = Tenant::factory()->create(['name' => 'Lieken GbR']);
+    $deleted = Tenant::factory()->create(['name' => 'Deleted']);
+
+    User::factory()
+        ->create(['is_active' => true, 'email' => 'both@example.com', 'language_id' => $this->defaultLanguage->getKey()])
+        ->tenants()
+        ->attach([$gmbh->getKey(), $gbr->getKey(), $deleted->getKey()]);
+    $deleted->delete();
+    User::factory()
+        ->create(['is_active' => true, 'email' => 'none@example.com', 'language_id' => $this->defaultLanguage->getKey()]);
+
+    $this->artisan('flux-license:send-update')
+        ->assertSuccessful();
+
+    Http::assertSent(function ($request) use ($gmbh, $gbr) {
+        $users = collect($request['users'])->keyBy('email');
+
+        return collect($users->get('both@example.com')['tenants'])->sortBy('id')->values()->all() === [
+            ['id' => $gmbh->getKey(), 'name' => 'Restaurant GmbH'],
+            ['id' => $gbr->getKey(), 'name' => 'Lieken GbR'],
+        ]
+            && $users->get('none@example.com')['tenants'] === [];
+    });
+});
+
+test('command reports all tenants of a user although the acting user sees fewer', function (): void {
+    Http::fake([
+        'flux.team-nifty.com/*' => Http::response(['success' => true], 200),
+    ]);
+
+    $gmbh = Tenant::factory()->create(['name' => 'Restaurant GmbH']);
+    $gbr = Tenant::factory()->create(['name' => 'Lieken GbR']);
+
+    $actingUser = User::factory()->create(['is_active' => true, 'language_id' => $this->defaultLanguage->getKey()]);
+    $actingUser->tenants()->attach($gmbh->getKey());
+    User::factory()
+        ->create(['is_active' => true, 'email' => 'both@example.com', 'language_id' => $this->defaultLanguage->getKey()])
+        ->tenants()
+        ->attach([$gmbh->getKey(), $gbr->getKey()]);
+
+    // the command runs inside the request that saved a user, scoped to that user's tenants
+    $this->actingAs($actingUser);
+    Context::forget('user_tenant_ids');
+
+    $this->artisan('flux-license:send-update')
+        ->assertSuccessful();
+
+    Http::assertSent(function ($request) {
+        $tenants = collect($request['users'])->keyBy('email')->get('both@example.com')['tenants'];
+
+        return collect($tenants)->pluck('name')->sort()->values()->all() === ['Lieken GbR', 'Restaurant GmbH'];
+    });
 });
