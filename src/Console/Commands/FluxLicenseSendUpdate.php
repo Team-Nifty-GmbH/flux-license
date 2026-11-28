@@ -2,6 +2,7 @@
 
 namespace TeamNiftyGmbH\FluxLicense\Console\Commands;
 
+use FluxErp\Models\Tenant;
 use FluxErp\Models\User;
 use FluxErp\Settings\CoreSettings;
 use Illuminate\Console\Command;
@@ -29,7 +30,18 @@ class FluxLicenseSendUpdate extends Command
             'https://flux.team-nifty.com/api/flux-licenses/' . app(CoreSettings::class)->license_key,
             [
                 'active_users' => User::query()->where('is_active', true)->count(),
-                'users' => User::query()->where('is_active', true)->get(['email'])->toArray(),
+                // tenants let the license server split the bill per tenant, older servers ignore the key
+                'users' => User::query()
+                    ->where('is_active', true)
+                    ->with('tenants:id,name')
+                    ->get(['id', 'email'])
+                    ->map(fn (User $user): array => [
+                        'email' => $user->email,
+                        'tenants' => $user->tenants
+                            ->map(fn (Tenant $tenant): array => ['id' => $tenant->getKey(), 'name' => $tenant->name])
+                            ->all(),
+                    ])
+                    ->all(),
                 'domain' => strtolower((string) parse_url((string) config('app.url'), PHP_URL_HOST)),
             ]
         );
